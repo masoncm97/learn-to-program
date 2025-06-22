@@ -48,8 +48,8 @@ const GameCanvas = ({ gameEngine, canvasRef, selectedGame }) => {
     if (isDrawingGame) {
       return {
         width: '100%',
-        maxWidth: '800px',
-        height: '400px',
+        maxWidth: '1200px',
+        height: '600px',
         backgroundColor: '#ffffff',
         border: '2px solid #e5e7eb',
         display: 'block'
@@ -71,7 +71,7 @@ const GameCanvas = ({ gameEngine, canvasRef, selectedGame }) => {
           {isDrawingGame ? 'Drawing Canvas' : 'Game Canvas'}
         </h3>
       </div>
-      <div className={`${isDrawingGame ? 'w-full' : 'flex-1'} flex items-center justify-center p-4 ${isDrawingGame ? 'min-h-[420px]' : 'h-full'}`}>
+      <div className={`${isDrawingGame ? 'w-full' : 'flex-1'} flex items-center justify-center p-4 ${isDrawingGame ? 'min-h-[620px]' : 'h-full'}`}>
         <canvas
           ref={canvasRef}
           className="rounded-lg shadow-lg"

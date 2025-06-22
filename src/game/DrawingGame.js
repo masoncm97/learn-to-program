@@ -57,14 +57,14 @@ export class DrawingGame {
           console.log('p5.js setup called');
           
           // Create a new canvas
-          const canvas = p.createCanvas(800, 400);
+          const canvas = p.createCanvas(1200, 600);
           canvas.elt.id = 'p5-canvas';
           
           // Apply styling to make it visible
           canvas.elt.className = 'rounded-lg shadow-lg';
           canvas.elt.style.width = '100%';
-          canvas.elt.style.maxWidth = '800px';
-          canvas.elt.style.height = '400px';
+          canvas.elt.style.maxWidth = '1200px';
+          canvas.elt.style.height = '600px';
           canvas.elt.style.backgroundColor = '#ffffff';
           canvas.elt.style.border = '2px solid #e5e7eb';
           canvas.elt.style.display = 'block';

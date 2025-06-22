@@ -44,8 +44,8 @@ export class GameEngine {
     }
     
     // Set canvas size for drawing game
-    this.canvasRef.current.width = 800;
-    this.canvasRef.current.height = 400;
+    this.canvasRef.current.width = 1200;
+    this.canvasRef.current.height = 600;
     
     // Create drawing game instance if it doesn't exist
     if (!this.drawingGame) {
