@@ -70,8 +70,9 @@ export class DrawingGame {
           canvas.elt.style.display = 'block';
           canvas.elt.style.visibility = 'visible';
           canvas.elt.style.position = 'absolute';
-          canvas.elt.style.top = '0';
-          canvas.elt.style.left = '0';
+          canvas.elt.style.top = '50%';
+          canvas.elt.style.left = '50%';
+          canvas.elt.style.transform = 'translate(-50%, -50%)';
           canvas.elt.style.zIndex = '10';
           canvas.elt.removeAttribute('data-hidden');
           
@@ -146,6 +147,11 @@ export class DrawingGame {
   clear() {
     this.shapes = [];
     this.animations = [];
+    
+    // Also clear the p5 canvas background if p5 is available
+    if (this.p5) {
+      this.p5.background(255); // Clear to white background
+    }
   }
 
   // Cleanup method
