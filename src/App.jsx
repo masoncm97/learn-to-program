@@ -28,6 +28,7 @@ function App() {
           canvasRef={canvasRef}
           onCodeChange={handleCodeChange}
           defaultCode={getDefaultCode()}
+          selectedGame={selectedGame}
         />
         <div className="mt-6">
           <Console 

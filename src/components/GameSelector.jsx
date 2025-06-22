@@ -17,6 +17,7 @@ const GameSelector = ({ selectedGame, onGameChange }) => {
       >
         <option value="snake">Snake Game</option>
         <option value="ball">Bouncing Ball Physics</option>
+        <option value="drawing">Drawing Game</option>
       </select>
     </div>
   );

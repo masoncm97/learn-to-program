@@ -1,5 +1,6 @@
 import { Snake } from './Snake.js';
 import { BouncingBall } from './BouncingBall.js';
+import { DrawingGame, Circle, Rectangle, Triangle, Particle } from './DrawingGame.js';
 
 export class GameEngine {
   constructor(canvasRef, onConsoleOutput) {
@@ -7,11 +8,13 @@ export class GameEngine {
     this.ctx = null;
     this.snakes = [];
     this.balls = [];
+    this.drawingGame = null;
     this.isRunning = false;
     this.animationId = null;
     this.onConsoleOutput = onConsoleOutput;
     this.consoleOutput = [];
     this.lastCodeExecution = '';
+    this.currentGameType = 'snake';
     
     // Override console methods to capture output
     this.originalConsole = {
@@ -30,6 +33,28 @@ export class GameEngine {
     
     this.setupConsoleCapture();
     this.start();
+  }
+
+  // Initialize drawing game with larger canvas
+  initializeDrawingGame() {
+    console.log('Initializing drawing game...');
+    if (!this.canvasRef.current) {
+      console.error('Canvas ref not available');
+      return;
+    }
+    
+    // Set canvas size for drawing game
+    this.canvasRef.current.width = 800;
+    this.canvasRef.current.height = 400;
+    
+    // Create drawing game instance if it doesn't exist
+    if (!this.drawingGame) {
+      this.drawingGame = new DrawingGame();
+    }
+    
+    // Initialize the drawing game with the canvas ref
+    this.drawingGame.initialize(this.canvasRef, this.onConsoleOutput);
+    console.log('Drawing game initialization complete');
   }
 
   setupConsoleCapture() {
@@ -72,41 +97,158 @@ export class GameEngine {
     }
   }
 
+  setGameType(gameType) {
+    console.log('Setting game type to:', gameType);
+    console.log('Current canvas ref:', this.canvasRef.current);
+    this.currentGameType = gameType;
+    
+    if (gameType === 'drawing') {
+      console.log('Initializing drawing game...');
+      this.initializeDrawingGame();
+    } else {
+      // Reset to standard canvas size for other games
+      if (this.canvasRef.current) {
+        this.canvasRef.current.width = 400;
+        this.canvasRef.current.height = 400;
+      }
+      this.drawingGame = null;
+    }
+  }
+
   executeCode(code) {
     if (code === this.lastCodeExecution) return;
     this.lastCodeExecution = code;
     
-    // Clear previous state
-    this.snakes = [];
-    this.balls = [];
+    // Clear previous state based on game type
+    if (this.currentGameType === 'drawing') {
+      if (this.drawingGame) {
+        this.drawingGame.clear();
+      }
+    } else {
+      this.snakes = [];
+      this.balls = [];
+    }
+    
     this.clearConsole();
     
     try {
-      // Create execution context with both classes available
-      const Snake = window.Snake || this.Snake;
-      const BouncingBall = window.BouncingBall || this.BouncingBall;
-      const executionContext = {
-        Snake,
-        BouncingBall,
-        console: console,
-        setTimeout,
-        setInterval,
-        clearTimeout,
-        clearInterval
-      };
-      
-      // Execute the code
-      const func = new Function('Snake', 'BouncingBall', 'console', code);
-      func(Snake, BouncingBall, console);
-      
+      if (this.currentGameType === 'drawing') {
+        this.executeDrawingCode(code);
+      } else {
+        this.executeGameCode(code);
+      }
     } catch (error) {
       this.addConsoleOutput('error', `Execution Error: ${error.message}`);
     }
   }
 
+  executeDrawingCode(code) {
+    console.log('Executing drawing code:', code.substring(0, 100) + '...');
+    if (!this.drawingGame) {
+      console.error('Drawing game not initialized!');
+      return;
+    }
+
+    // Create modified classes that add themselves to the drawing game
+    const drawingGameInstance = this.drawingGame;
+    
+    const GameCircle = class extends Circle {
+      constructor(x, y, radius, color) {
+        super(x, y, radius, color);
+        drawingGameInstance.addShape(this);
+      }
+    };
+    
+    const GameRectangle = class extends Rectangle {
+      constructor(x, y, width, height, color) {
+        super(x, y, width, height, color);
+        drawingGameInstance.addShape(this);
+      }
+    };
+    
+    const GameTriangle = class extends Triangle {
+      constructor(x, y, size, color) {
+        super(x, y, size, color);
+        drawingGameInstance.addShape(this);
+      }
+    };
+    
+    const GameParticle = class extends Particle {
+      constructor(x, y, color) {
+        super(x, y, color);
+        drawingGameInstance.addAnimation(this);
+      }
+    };
+    
+    // Temporarily replace the global classes
+    const originalCircle = window.Circle;
+    const originalRectangle = window.Rectangle;
+    const originalTriangle = window.Triangle;
+    const originalParticle = window.Particle;
+    
+    window.Circle = GameCircle;
+    window.Rectangle = GameRectangle;
+    window.Triangle = GameTriangle;
+    window.Particle = GameParticle;
+    
+    try {
+      // Execute the code
+      const func = new Function('Circle', 'Rectangle', 'Triangle', 'Particle', 'console', code);
+      func(GameCircle, GameRectangle, GameTriangle, GameParticle, console);
+      console.log('Drawing code executed successfully');
+    } catch (error) {
+      console.error('Error executing drawing code:', error);
+    }
+    
+    // Restore original classes
+    window.Circle = originalCircle;
+    window.Rectangle = originalRectangle;
+    window.Triangle = originalTriangle;
+    window.Particle = originalParticle;
+  }
+
+  executeGameCode(code) {
+    // Create modified classes that add themselves to the game engine
+    const gameEngineInstance = this;
+    
+    const GameSnake = class extends Snake {
+      constructor(x, y) {
+        super(x, y);
+        gameEngineInstance.addSnake(this);
+      }
+    };
+    
+    const GameBouncingBall = class extends BouncingBall {
+      constructor(x, y, radius) {
+        super(x, y, radius);
+        gameEngineInstance.addBall(this);
+      }
+    };
+    
+    // Temporarily replace the global classes
+    const originalSnake = window.Snake;
+    const originalBall = window.BouncingBall;
+    window.Snake = GameSnake;
+    window.BouncingBall = GameBouncingBall;
+    
+    // Execute the code
+    const func = new Function('Snake', 'BouncingBall', 'console', code);
+    func(GameSnake, GameBouncingBall, console);
+    
+    // Restore original classes
+    window.Snake = originalSnake;
+    window.BouncingBall = originalBall;
+  }
+
   start() {
     if (this.isRunning) return;
     this.isRunning = true;
+    
+    if (this.currentGameType === 'drawing') {
+      // Drawing game uses p5.js animation loop
+      return;
+    }
+    
     this.gameLoop();
   }
 
@@ -127,6 +269,8 @@ export class GameEngine {
   }
 
   update() {
+    if (this.currentGameType === 'drawing') return;
+    
     const canvasWidth = this.canvasRef.current?.width || 400;
     const canvasHeight = this.canvasRef.current?.height || 400;
     
@@ -140,6 +284,7 @@ export class GameEngine {
   }
 
   render() {
+    if (this.currentGameType === 'drawing') return;
     if (!this.ctx) return;
     
     // Clear canvas
@@ -198,6 +343,10 @@ export class GameEngine {
   // Cleanup method
   cleanup() {
     this.stop();
+    
+    if (this.drawingGame) {
+      this.drawingGame.cleanup();
+    }
     
     // Restore original console methods
     console.log = this.originalConsole.log;
