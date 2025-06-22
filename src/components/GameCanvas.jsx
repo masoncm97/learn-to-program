@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-const GameCanvas = ({ gameEngine, canvasRef, selectedGame }) => {
+const GameCanvas = ({ gameEngine, canvasRef, selectedGame, onReplay }) => {
   const isDrawingGame = selectedGame === 'drawing';
 
   useEffect(() => {
@@ -64,6 +64,12 @@ const GameCanvas = ({ gameEngine, canvasRef, selectedGame }) => {
     };
   };
 
+  const handleReplay = () => {
+    if (onReplay) {
+      onReplay();
+    }
+  };
+
   return (
     <div className={`${isDrawingGame ? 'w-full' : 'h-full'} bg-gray-900 rounded-lg flex flex-col`}>
       <div className="bg-gray-800 px-4 py-2 border-b border-gray-700">
@@ -71,12 +77,21 @@ const GameCanvas = ({ gameEngine, canvasRef, selectedGame }) => {
           {isDrawingGame ? 'Drawing Canvas' : 'Game Canvas'}
         </h3>
       </div>
-      <div className={`${isDrawingGame ? 'w-full' : 'flex-1'} flex items-center justify-center p-4 ${isDrawingGame ? 'min-h-[620px]' : 'h-full'}`}>
+      <div className={`${isDrawingGame ? 'w-full' : 'flex-1'} flex items-center justify-center p-4 ${isDrawingGame ? 'min-h-[620px]' : 'h-full'} relative`}>
         <canvas
           ref={canvasRef}
           className="rounded-lg shadow-lg"
           style={getCanvasStyle()}
         />
+        {isDrawingGame && (
+          <button
+            onClick={handleReplay}
+            className="absolute top-6 right-6 z-20 px-3 py-2 bg-gray-200 bg-opacity-30 hover:bg-opacity-50 text-gray-700 text-sm font-medium rounded-md transition-all duration-200 backdrop-blur-sm border border-gray-300 border-opacity-30 hover:border-opacity-50"
+            title="Replay drawing from code"
+          >
+            ↻ Replay
+          </button>
+        )}
       </div>
     </div>
   );

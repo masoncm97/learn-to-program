@@ -181,12 +181,6 @@ export class DrawingGame {
             }
             return true;
           });
-          
-          // Debug: draw a test shape if no shapes exist
-          if (this.shapes.length === 0 && this.animations.length === 0) {
-            p.fill(0, 255, 0);
-            p.ellipse(400, 200, 50);
-          }
         };
       });
       

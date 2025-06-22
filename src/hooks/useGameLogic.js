@@ -419,6 +419,28 @@ export const useGameLogic = () => {
     }
   }, [gameEngine]);
 
+  const handleReplay = useCallback((currentCode) => {
+    if (gameEngine && selectedGame === 'drawing') {
+      console.log('Replaying drawing game with current code');
+      console.log('Current code length:', currentCode.length);
+      
+      // Clear the current drawing
+      if (gameEngine.drawingGame) {
+        console.log('Clearing drawing game...');
+        gameEngine.drawingGame.clear();
+        console.log('Drawing game cleared');
+      }
+      
+      // Small delay to ensure clearing is complete
+      setTimeout(() => {
+        console.log('Executing code after clear...');
+        // Execute the current code to reload the canvas (force execution)
+        gameEngine.executeCodeForce(currentCode);
+        console.log('Code execution complete');
+      }, 50);
+    }
+  }, [gameEngine, selectedGame]);
+
   const getDefaultCode = useCallback(() => {
     switch (selectedGame) {
       case 'snake':
@@ -440,6 +462,7 @@ export const useGameLogic = () => {
     handleGameChange,
     handleCodeChange,
     handleClearConsole,
+    handleReplay,
     getDefaultCode,
     nextDrawingExample,
     previousDrawingExample,

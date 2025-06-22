@@ -115,8 +115,8 @@ export class GameEngine {
     }
   }
 
-  executeCode(code) {
-    if (code === this.lastCodeExecution) return;
+  executeCode(code, force = false) {
+    if (!force && code === this.lastCodeExecution) return;
     this.lastCodeExecution = code;
     
     // Clear previous state based on game type
@@ -360,5 +360,10 @@ export class GameEngine {
     console.log = this.originalConsole.log;
     console.error = this.originalConsole.error;
     console.warn = this.originalConsole.warn;
+  }
+
+  // Force execute code (for replay functionality)
+  executeCodeForce(code) {
+    this.executeCode(code, true);
   }
 } 

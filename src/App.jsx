@@ -20,7 +20,8 @@ function App() {
     nextDrawingExample,
     previousDrawingExample,
     currentDrawingExample,
-    drawingExamples
+    drawingExamples,
+    handleReplay
   } = useGameLogic();
 
   return (
@@ -41,6 +42,7 @@ function App() {
           onCodeChange={handleCodeChange}
           defaultCode={getDefaultCode()}
           selectedGame={selectedGame}
+          onReplay={handleReplay}
         />
         <div className="mt-6">
           <Console 

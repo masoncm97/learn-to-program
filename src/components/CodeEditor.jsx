@@ -1,9 +1,16 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import Editor from '@monaco-editor/react';
 
-const CodeEditor = ({ onCodeChange, defaultCode }) => {
+const CodeEditor = forwardRef(({ onCodeChange, defaultCode }, ref) => {
   const editorRef = useRef(null);
   const [code, setCode] = useState(defaultCode);
+
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    getCurrentCode: () => {
+      return editorRef.current ? editorRef.current.getValue() : code;
+    }
+  }));
 
   // Update internal state when defaultCode prop changes
   useEffect(() => {
@@ -177,6 +184,6 @@ const CodeEditor = ({ onCodeChange, defaultCode }) => {
       </div>
     </div>
   );
-};
+});
 
 export default CodeEditor; 
