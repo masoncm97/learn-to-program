@@ -1,12 +1,74 @@
 // Remove the import since we're using global p5.js from CDN
 // import p5 from 'p5';
 
+// Helper function to convert HSL to RGB
+function hslToRgb(h, s, l) {
+  h /= 360;
+  s /= 100;
+  l /= 100;
+  
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+  const m = l - c / 2;
+  
+  let r, g, b;
+  if (h < 1/6) {
+    r = c; g = x; b = 0;
+  } else if (h < 2/6) {
+    r = x; g = c; b = 0;
+  } else if (h < 3/6) {
+    r = 0; g = c; b = x;
+  } else if (h < 4/6) {
+    r = 0; g = x; b = c;
+  } else if (h < 5/6) {
+    r = x; g = 0; b = c;
+  } else {
+    r = c; g = 0; b = x;
+  }
+  
+  return [
+    Math.round((r + m) * 255),
+    Math.round((g + m) * 255),
+    Math.round((b + m) * 255)
+  ];
+}
+
+// Helper function to parse color string
+function parseColor(colorString) {
+  if (colorString.startsWith('#')) {
+    // Hex color
+    const hex = colorString.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    return [r, g, b];
+  } else if (colorString.startsWith('hsl')) {
+    // HSL color
+    const hslMatch = colorString.match(/hsl\(([^,]+),\s*([^,]+)%,\s*([^)]+)%\)/);
+    if (hslMatch) {
+      const h = parseFloat(hslMatch[1]);
+      const s = parseFloat(hslMatch[2]);
+      const l = parseFloat(hslMatch[3]);
+      return hslToRgb(h, s, l);
+    }
+  }
+  // Fallback to magenta
+  return [255, 0, 255];
+}
+
 export class DrawingGame {
   constructor() {
     this.shapes = [];
     this.animations = [];
     this.p5 = null;
     this.isInitialized = false;
+    this.trailsEnabled = false;
+  }
+
+  // Toggle trail mode
+  setTrails(enabled) {
+    this.trailsEnabled = enabled;
+    console.log('Trails:', enabled ? 'enabled' : 'disabled');
   }
 
   // Initialize p5.js instance
@@ -97,6 +159,10 @@ export class DrawingGame {
         };
 
         p.draw = () => {
+          // Only clear background if trails are disabled
+          if (!this.trailsEnabled) {
+            p.background(255);
+          }
           
           // Update and draw all shapes
           this.shapes.forEach((shape, index) => {
@@ -104,10 +170,16 @@ export class DrawingGame {
             if (shape.draw) shape.draw(p);
           });
           
-          // Update and draw all animations
-          this.animations.forEach((animation, index) => {
+          // Update and draw all animations, removing dead particles
+          this.animations = this.animations.filter(animation => {
             if (animation.update) animation.update(p);
             if (animation.draw) animation.draw(p);
+            
+            // Remove dead particles
+            if (animation.isDead && animation.isDead()) {
+              return false;
+            }
+            return true;
           });
           
           // Debug: draw a test shape if no shapes exist
@@ -130,16 +202,37 @@ export class DrawingGame {
   // Add a shape to the drawing
   addShape(shape) {
     if (shape && typeof shape === 'object') {
-      this.shapes.push(shape);
-      console.log('Shape added:', shape.constructor.name, 'Total shapes:', this.shapes.length);
+      // Check if this shape is already in the array
+      const isDuplicate = this.shapes.some(existingShape => 
+        existingShape === shape || 
+        (existingShape.x === shape.x && 
+         existingShape.y === shape.y && 
+         existingShape.constructor.name === shape.constructor.name)
+      );
+      
+      if (!isDuplicate) {
+        this.shapes.push(shape);
+        console.log('Shape added:', shape.constructor.name, 'Total shapes:', this.shapes.length);
+      } else {
+        console.log('Duplicate shape prevented:', shape.constructor.name);
+      }
     }
   }
 
   // Add an animation to the drawing
   addAnimation(animation) {
     if (animation && typeof animation === 'object') {
-      this.animations.push(animation);
-      console.log('Animation added:', animation.constructor.name, 'Total animations:', this.animations.length);
+      // Check if this animation is already in the array
+      const isDuplicate = this.animations.some(existingAnimation => 
+        existingAnimation === animation
+      );
+      
+      if (!isDuplicate) {
+        this.animations.push(animation);
+        console.log('Animation added:', animation.constructor.name, 'Total animations:', this.animations.length);
+      } else {
+        console.log('Duplicate animation prevented:', animation.constructor.name);
+      }
     }
   }
 
@@ -226,7 +319,10 @@ export class Circle {
     p.push();
     p.translate(this.x, this.y);
     p.rotate(this.rotation);
-    p.fill(this.color);
+    
+    const [r, g, b] = parseColor(this.color);
+    p.fill(r, g, b);
+    
     p.ellipse(0, 0, this.radius * 2);
     p.pop();
   }
@@ -276,7 +372,10 @@ export class Rectangle {
     p.push();
     p.translate(this.x + this.width / 2, this.y + this.height / 2);
     p.rotate(this.rotation);
-    p.fill(this.color);
+    
+    const [r, g, b] = parseColor(this.color);
+    p.fill(r, g, b);
+    
     p.rect(-this.width / 2, -this.height / 2, this.width, this.height);
     p.pop();
   }
@@ -325,7 +424,10 @@ export class Triangle {
     p.push();
     p.translate(this.x, this.y);
     p.rotate(this.rotation);
-    p.fill(this.color);
+    
+    const [r, g, b] = parseColor(this.color);
+    p.fill(r, g, b);
+    
     p.triangle(0, -this.size, -this.size, this.size, this.size, this.size);
     p.pop();
   }
@@ -336,11 +438,16 @@ export class Particle {
     this.x = x;
     this.y = y;
     this.color = color;
-    this.vx = (Math.random() - 0.5) * 4;
-    this.vy = (Math.random() - 0.5) * 4;
+    this.vx = 0;  // Start with zero velocity
+    this.vy = 0;  // Start with zero velocity
     this.life = 255;
     this.decay = 2;
     this.size = Math.random() * 10 + 5;
+    this.gravity = 0.1;  // Default gravity
+  }
+
+  setGravity(gravity) {
+    this.gravity = gravity;
   }
 
   update(p) {
@@ -348,19 +455,19 @@ export class Particle {
     this.y += this.vy;
     this.life -= this.decay;
 
-    // Add some gravity
-    this.vy += 0.1;
+    // Add gravity only if gravity is enabled
+    if (this.gravity !== 0) {
+      this.vy += this.gravity;
+    }
   }
 
   draw(p) {
     p.push();
-    // Convert hex color to RGB and use alpha separately
-    const hex = this.color.replace('#', '');
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
+    
+    const [r, g, b] = parseColor(this.color);
     const alpha = Math.floor(this.life);
     p.fill(r, g, b, alpha);
+    
     p.ellipse(this.x, this.y, this.size);
     p.pop();
   }

@@ -195,6 +195,14 @@ export class GameEngine {
       // Execute the code
       const func = new Function('Circle', 'Rectangle', 'Triangle', 'Particle', 'console', code);
       func(GameCircle, GameRectangle, GameTriangle, GameParticle, console);
+      
+      // Check if enableTrails was defined in the code and set trail mode
+      const trailMatch = code.match(/const enableTrails = (true|false);/);
+      if (trailMatch) {
+        const trailsEnabled = trailMatch[1] === 'true';
+        this.drawingGame.setTrails(trailsEnabled);
+      }
+      
       console.log('Drawing code executed successfully');
     } catch (error) {
       console.error('Error executing drawing code:', error);

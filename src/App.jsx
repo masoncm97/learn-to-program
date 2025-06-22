@@ -4,6 +4,7 @@ import GameSelector from './components/GameSelector';
 import MainContent from './components/MainContent';
 import Console from './components/Console';
 import Instructions from './components/Instructions';
+import ExampleSelector from './components/ExampleSelector';
 import { useGameLogic } from './hooks/useGameLogic';
 
 function App() {
@@ -15,7 +16,11 @@ function App() {
     handleGameChange,
     handleCodeChange,
     handleClearConsole,
-    getDefaultCode
+    getDefaultCode,
+    nextDrawingExample,
+    previousDrawingExample,
+    currentDrawingExample,
+    drawingExamples
   } = useGameLogic();
 
   return (
@@ -23,6 +28,13 @@ function App() {
       <Header />
       <main className="max-w-7xl mx-auto px-6 py-6">
         <GameSelector selectedGame={selectedGame} onGameChange={handleGameChange} />
+        <ExampleSelector 
+          selectedGame={selectedGame}
+          currentDrawingExample={currentDrawingExample}
+          drawingExamples={drawingExamples}
+          onNext={nextDrawingExample}
+          onPrevious={previousDrawingExample}
+        />
         <MainContent 
           gameEngine={gameEngine}
           canvasRef={canvasRef}
