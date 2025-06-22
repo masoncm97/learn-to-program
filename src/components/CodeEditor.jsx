@@ -5,6 +5,14 @@ const CodeEditor = ({ onCodeChange, defaultCode }) => {
   const editorRef = useRef(null);
   const [code, setCode] = useState(defaultCode);
 
+  // Update internal state when defaultCode prop changes
+  useEffect(() => {
+    setCode(defaultCode);
+    if (editorRef.current) {
+      editorRef.current.setValue(defaultCode);
+    }
+  }, [defaultCode]);
+
   const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor;
     
@@ -81,6 +89,34 @@ const CodeEditor = ({ onCodeChange, defaultCode }) => {
               insertText: 'move(\'${1:direction}\')',
               insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
               documentation: 'Move snake in direction (\'up\', \'down\', \'left\', \'right\')'
+            },
+            {
+              label: 'new BouncingBall',
+              kind: monaco.languages.CompletionItemKind.Constructor,
+              insertText: 'new BouncingBall(${1:x}, ${2:y}, ${3:radius})',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'Create a new bouncing ball at position (x, y) with radius'
+            },
+            {
+              label: 'setVelocity',
+              kind: monaco.languages.CompletionItemKind.Method,
+              insertText: 'setVelocity(${1:vx}, ${2:vy})',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'Set the ball velocity (x, y)'
+            },
+            {
+              label: 'setBounce',
+              kind: monaco.languages.CompletionItemKind.Method,
+              insertText: 'setBounce(${1:bounciness})',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'Set the ball bounce factor (0 to 1)'
+            },
+            {
+              label: 'setGravity',
+              kind: monaco.languages.CompletionItemKind.Method,
+              insertText: 'setGravity(${1:gravity})',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'Set the ball gravity (downward acceleration)'
             }
           ]
         };

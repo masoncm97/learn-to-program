@@ -1,10 +1,12 @@
 import { Snake } from './Snake.js';
+import { BouncingBall } from './BouncingBall.js';
 
 export class GameEngine {
   constructor(canvasRef, onConsoleOutput) {
     this.canvasRef = canvasRef;
     this.ctx = null;
     this.snakes = [];
+    this.balls = [];
     this.isRunning = false;
     this.animationId = null;
     this.onConsoleOutput = onConsoleOutput;
@@ -76,13 +78,16 @@ export class GameEngine {
     
     // Clear previous state
     this.snakes = [];
+    this.balls = [];
     this.clearConsole();
     
     try {
-      // Create execution context with Snake class available
+      // Create execution context with both classes available
       const Snake = window.Snake || this.Snake;
+      const BouncingBall = window.BouncingBall || this.BouncingBall;
       const executionContext = {
         Snake,
+        BouncingBall,
         console: console,
         setTimeout,
         setInterval,
@@ -91,8 +96,8 @@ export class GameEngine {
       };
       
       // Execute the code
-      const func = new Function('Snake', 'console', code);
-      func(Snake, console);
+      const func = new Function('Snake', 'BouncingBall', 'console', code);
+      func(Snake, BouncingBall, console);
       
     } catch (error) {
       this.addConsoleOutput('error', `Execution Error: ${error.message}`);
@@ -128,6 +133,10 @@ export class GameEngine {
     this.snakes.forEach(snake => {
       snake.update(canvasWidth, canvasHeight);
     });
+    
+    this.balls.forEach(ball => {
+      ball.update(canvasWidth, canvasHeight);
+    });
   }
 
   render() {
@@ -143,6 +152,11 @@ export class GameEngine {
     // Draw snakes
     this.snakes.forEach(snake => {
       snake.draw(this.ctx);
+    });
+    
+    // Draw balls
+    this.balls.forEach(ball => {
+      ball.draw(this.ctx);
     });
   }
 
@@ -171,6 +185,13 @@ export class GameEngine {
   addSnake(snake) {
     if (snake instanceof Snake) {
       this.snakes.push(snake);
+    }
+  }
+
+  // Method to add balls from code execution
+  addBall(ball) {
+    if (ball instanceof BouncingBall) {
+      this.balls.push(ball);
     }
   }
 
