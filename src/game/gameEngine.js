@@ -16,12 +16,20 @@ export class GameEngine {
     this.lastCodeExecution = '';
     this.currentGameType = 'snake';
     
-    // Override console methods to capture output
+    // Store original console methods
     this.originalConsole = {
       log: console.log,
       error: console.error,
       warn: console.warn
     };
+    // Store globally for debug logs
+    window.__ORIGINAL_CONSOLE__ = this.originalConsole;
+    
+    // Set up console capture immediately
+    this.setupConsoleCapture();
+    
+    // Test that console capture is working
+    this.originalConsole.log('GameEngine created and console capture initialized');
   }
 
   initialize() {
@@ -31,7 +39,6 @@ export class GameEngine {
     this.canvasRef.current.width = 400;
     this.canvasRef.current.height = 400;
     
-    this.setupConsoleCapture();
     this.start();
   }
 
@@ -58,8 +65,7 @@ export class GameEngine {
   }
 
   setupConsoleCapture() {
-    const self = this;
-    
+    // Override console methods to capture output
     console.log = (...args) => {
       this.originalConsole.log(...args);
       this.addConsoleOutput('log', args.join(' '));
@@ -79,12 +85,16 @@ export class GameEngine {
   addConsoleOutput(type, message) {
     const timestamp = new Date().toLocaleTimeString();
     this.consoleOutput.push({ type, message, timestamp });
-    
     // Keep only last 50 messages
     if (this.consoleOutput.length > 50) {
       this.consoleOutput.shift();
     }
-    
+    // Use original console for debug logs to avoid recursion
+    if (this.originalConsole && this.originalConsole.log) {
+      this.originalConsole.log(`[DEBUG] addConsoleOutput called: ${type} - ${message}`);
+      this.originalConsole.log(`[DEBUG] onConsoleOutput exists: ${!!this.onConsoleOutput}`);
+      this.originalConsole.log(`[DEBUG] consoleOutput length: ${this.consoleOutput.length}`);
+    }
     if (this.onConsoleOutput) {
       this.onConsoleOutput([...this.consoleOutput]);
     }
@@ -192,9 +202,25 @@ export class GameEngine {
     window.Particle = GameParticle;
     
     try {
-      // Execute the code
+      // Create a custom console object that captures output
+      const customConsole = {
+        log: (...args) => {
+          this.originalConsole.log(...args);
+          this.addConsoleOutput('log', args.join(' '));
+        },
+        error: (...args) => {
+          this.originalConsole.error(...args);
+          this.addConsoleOutput('error', args.join(' '));
+        },
+        warn: (...args) => {
+          this.originalConsole.warn(...args);
+          this.addConsoleOutput('warn', args.join(' '));
+        }
+      };
+      
+      // Execute the code with the custom console object
       const func = new Function('Circle', 'Rectangle', 'Triangle', 'Particle', 'console', code);
-      func(GameCircle, GameRectangle, GameTriangle, GameParticle, console);
+      func(GameCircle, GameRectangle, GameTriangle, GameParticle, customConsole);
       
       // Check if enableTrails was defined in the code and set trail mode
       const trailMatch = code.match(/const enableTrails = (true|false);/);
@@ -239,9 +265,25 @@ export class GameEngine {
     window.Snake = GameSnake;
     window.BouncingBall = GameBouncingBall;
     
-    // Execute the code
+    // Create a custom console object that captures output
+    const customConsole = {
+      log: (...args) => {
+        this.originalConsole.log(...args);
+        this.addConsoleOutput('log', args.join(' '));
+      },
+      error: (...args) => {
+        this.originalConsole.error(...args);
+        this.addConsoleOutput('error', args.join(' '));
+      },
+      warn: (...args) => {
+        this.originalConsole.warn(...args);
+        this.addConsoleOutput('warn', args.join(' '));
+      }
+    };
+    
+    // Execute the code with the custom console object
     const func = new Function('Snake', 'BouncingBall', 'console', code);
-    func(GameSnake, GameBouncingBall, console);
+    func(GameSnake, GameBouncingBall, customConsole);
     
     // Restore original classes
     window.Snake = originalSnake;

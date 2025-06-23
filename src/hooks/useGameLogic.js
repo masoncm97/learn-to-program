@@ -43,6 +43,7 @@ for (let i = 0; i < 5; i++) {
   circle.setColor(\`hsl(\${i * 72}, 70%, 60%)\`);
   circle.setVelocity(2, 1);
   circle.setRotationSpeed(0.02);
+  console.log(\`Created circle \${i + 1} at position (\${100 + i * 100}, 100)\`);
 }
 
 // Create some rectangles
@@ -51,6 +52,7 @@ for (let i = 0; i < 3; i++) {
   rect.setColor(\`hsl(\${120 + i * 60}, 80%, 50%)\`);
   rect.setVelocity(-1, 2);
   rect.setRotationSpeed(0.03);
+  console.log(\`Created rectangle \${i + 1} at position (\${150 + i * 150}, 200)\`);
 }
 
 // Create some triangles
@@ -59,12 +61,15 @@ for (let i = 0; i < 4; i++) {
   triangle.setColor(\`hsl(\${240 + i * 45}, 75%, 55%)\`);
   triangle.setVelocity(1.5, -1);
   triangle.setRotationSpeed(0.04);
+  console.log(\`Created triangle \${i + 1} at position (\${200 + i * 120}, 300)\`);
 }
 
 console.log('Drawing game initialized with shapes and animations!');`;
 
 const particleCode = `// Create some particles with simple hex colors
 console.log('Creating particles...');
+console.log('Setting up particle explosion...');
+
 for (let i = 0; i < 30; i++) {
   const particle = new Particle(600, 300, '#ff0080');
   
@@ -96,7 +101,8 @@ for (let i = 0; i < 30; i++) {
   
   console.log(\`Particle \${i}: angle=\${angle.toFixed(2)}, vx=\${particle.vx.toFixed(2)}, vy=\${particle.vy.toFixed(2)}, arcFactor=\${arcFactor.toFixed(2)}, arcDirection=\${arcDirection}, color=\${particle.color}, size=\${particle.size}\`);
 }
-console.log('Finished creating particles');`
+console.log('Finished creating particles');
+console.log('Particle explosion setup complete!');`;
 
 const mathematicalPatternsCode = `// Mathematical Patterns
 // Create beautiful mathematical patterns using sin/cos
@@ -319,7 +325,11 @@ export const useGameLogic = () => {
 
   // Initialize game engine
   useEffect(() => {
-    const engine = new GameEngine(canvasRef, setConsoleOutput);
+    const engine = new GameEngine(canvasRef, (output) => {
+      window.__ORIGINAL_CONSOLE__?.log('[useGameLogic] setConsoleOutput called with:', output);
+      window.__ORIGINAL_CONSOLE__?.log('[useGameLogic] Output length:', output.length);
+      setConsoleOutput(output);
+    });
     setGameEngine(engine);
 
     // Make all classes globally available
@@ -329,6 +339,12 @@ export const useGameLogic = () => {
     window.Rectangle = Rectangle;
     window.Triangle = Triangle;
     window.Particle = Particle;
+
+    // Test console output after a short delay
+    setTimeout(() => {
+      console.log('Test console output from useGameLogic');
+      console.log('This should appear in the console output panel');
+    }, 1000);
 
     return () => {
       engine.cleanup();

@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Console = ({ output, onClear }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Debug: Log when output prop changes
+  useEffect(() => {
+    console.log('[Console Component] Output prop changed:', output);
+    console.log('[Console Component] Output length:', output?.length);
+  }, [output]);
 
   const getOutputColor = (type) => {
     switch (type) {
@@ -43,7 +49,7 @@ const Console = ({ output, onClear }) => {
       
       {!isCollapsed && (
         <div className="h-48 overflow-y-auto p-4 font-mono text-sm bg-black">
-          {output.length === 0 ? (
+          {!output || output.length === 0 ? (
             <div className="text-green-600/60 italic">
               &gt; Console output will appear here...
             </div>
